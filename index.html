@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#ffffff" />
+<title>Is Caloria right for you?</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+  :root {
+    --brand: #58CC02;
+    --brand-dark: #46A302;
+    --brand-light: #89E219;
+    --gold: #FFC800;
+    --ink: #3C3C3C;
+    --muted: #777;
+    --line: #E5E5E5;
+  }
+  html, body {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: #fff;
+  }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px 24px;
+  }
+  /* Duolingo-style chunky button */
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-bottom-width: 4px;
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: left;
+    transition: transform 80ms ease, border-color 120ms ease, background 120ms ease;
+    cursor: pointer;
+    user-select: none;
+  }
+  .opt:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+  .opt.selected {
+    border-color: var(--brand);
+    background: #E8F9D6;
+    color: var(--brand-dark);
+  }
+  .opt .emoji {
+    font-size: 26px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .cta {
+    width: 100%;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    border: none;
+    border-bottom: 4px solid var(--brand-dark);
+    border-radius: 16px;
+    padding: 16px;
+    transition: transform 80ms ease, filter 120ms ease;
+    cursor: pointer;
+  }
+  .cta:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+  .cta:disabled {
+    background: #E5E5E5;
+    color: #AFAFAF;
+    border-bottom-color: #C8C8C8;
+    cursor: not-allowed;
+  }
+  /* Progress bar */
+  .progress-track {
+    flex: 1;
+    height: 14px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--brand);
+    border-radius: 999px;
+    transition: width 320ms cubic-bezier(.4,0,.2,1);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.12);
+  }
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  /* Step transitions */
+  .step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 280ms cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  /* Calculating */
+  .calc-bar-track {
+    width: 100%;
+    height: 18px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .calc-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--brand-light), var(--brand));
+    border-radius: 999px;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15);
+    transition: width 200ms linear;
+  }
+  /* Result */
+  .reason {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: #F7FBF1;
+    border: 2px solid #DCEFC4;
+    border-radius: 16px;
+    padding: 14px 16px;
+  }
+  .badge-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border-bottom: 3px solid var(--brand-dark);
+  }
+  .pop {
+    animation: pop 480ms cubic-bezier(.2,.9,.3,1.4);
+  }
+  @keyframes pop {
+    0%   { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+  .pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand);
+    margin-right: 6px;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50%      { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="flex items-center gap-3 mb-6" id="topBar">
+    <button id="backBtn" class="icon-btn" aria-label="Back">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="text-xs font-bold text-gray-400 tabular-nums" id="progressText">0/8</div>
+  </header>
+
+  <!-- Main -->
+  <main id="main" class="flex-1 flex flex-col"></main>
+
+  <!-- Footer brand -->
+  <footer class="text-center text-xs text-gray-400 pt-4">
+    <span class="font-semibold">Caloria</span> · scan your food, see the calories
+  </footer>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    id: 'gender',
+    title: "What's your gender?",
+    subtitle: "We'll personalize your plan.",
+    options: [
+      { emoji: '👨', label: 'Male',   value: 'male' },
+      { emoji: '👩', label: 'Female', value: 'female' },
+      { emoji: '🧑', label: 'Other',  value: 'other' },
+    ],
+  },
+  {
+    id: 'age',
+    title: "How old are you?",
+    subtitle: "Just a rough range.",
+    options: [
+      { emoji: '🧒', label: 'Under 18', value: 'u18' },
+      { emoji: '🧑', label: '18 – 29',  value: '18-29' },
+      { emoji: '👨', label: '30 – 44',  value: '30-44' },
+      { emoji: '👴', label: '45+',      value: '45+' },
+    ],
+  },
+  {
+    id: 'goal',
+    title: "What's your main goal?",
+    subtitle: "Pick the one that fits best.",
+    options: [
+      { emoji: '🔥', label: 'Lose weight',   value: 'lose' },
+      { emoji: '💪', label: 'Build muscle',  value: 'muscle' },
+      { emoji: '⚖️', label: 'Maintain',      value: 'maintain' },
+      { emoji: '🥗', label: 'Eat healthier', value: 'healthy' },
+    ],
+  },
+  {
+    id: 'tracking',
+    title: "How often do you track meals?",
+    options: [
+      { emoji: '📅', label: 'Every day',   value: 'daily' },
+      { emoji: '📆', label: 'Sometimes',   value: 'sometimes' },
+      { emoji: '❌', label: 'Never',       value: 'never' },
+    ],
+  },
+  {
+    id: 'struggle',
+    title: "What's your biggest struggle?",
+    options: [
+      { emoji: '🤔', label: "Knowing calories",  value: 'calories' },
+      { emoji: '⏱️', label: 'Not enough time',   value: 'time' },
+      { emoji: '📓', label: 'Logging is tedious',value: 'tedious' },
+      { emoji: '🍔', label: 'Cravings',          value: 'cravings' },
+    ],
+  },
+  {
+    id: 'logging',
+    title: "How do you log food today?",
+    options: [
+      { emoji: '✍️', label: 'Manually type it', value: 'manual' },
+      { emoji: '📷', label: 'Take photos',      value: 'photo' },
+      { emoji: '🧠', label: 'Just guess',       value: 'guess' },
+      { emoji: '🙅', label: "I don't",          value: 'none' },
+    ],
+  },
+  {
+    id: 'scan',
+    title: "Would scanning food with your camera help?",
+    subtitle: "Point, snap, see calories instantly.",
+    options: [
+      { emoji: '📸', label: 'Yes, that sounds great!', value: 'yes' },
+      { emoji: '🤔', label: 'Maybe',                   value: 'maybe' },
+      { emoji: '🙅', label: 'Not really',              value: 'no' },
+    ],
+  },
+  {
+    id: 'commit',
+    title: "How committed are you?",
+    subtitle: "Be honest — there are no wrong answers.",
+    options: [
+      { emoji: '🚀', label: "All in — let's go",  value: 'high' },
+      { emoji: '🙂', label: 'Steady and consistent', value: 'mid' },
+      { emoji: '🐢', label: 'Slow and easy',      value: 'low' },
+    ],
+  },
+];
+
+const state = {
+  step: 0,           // 0..QUESTIONS.length-1, then 'calc', then 'result'
+  phase: 'quiz',     // 'quiz' | 'calc' | 'result'
+  answers: {},
+};
+
+const $main = document.getElementById('main');
+const $progressFill = document.getElementById('progressFill');
+const $progressText = document.getElementById('progressText');
+const $backBtn = document.getElementById('backBtn');
+const $topBar = document.getElementById('topBar');
+
+$backBtn.addEventListener('click', () => {
+  if (state.phase !== 'quiz') return;
+  if (state.step > 0) {
+    state.step--;
+    render();
+  }
+});
+
+function updateProgress() {
+  const total = QUESTIONS.length;
+  let pct;
+  if (state.phase === 'quiz') pct = (state.step / total) * 100;
+  else if (state.phase === 'calc') pct = 100;
+  else pct = 100;
+  $progressFill.style.width = pct + '%';
+  $progressText.textContent =
+    state.phase === 'quiz' ? `${state.step}/${total}` : `${total}/${total}`;
+  $backBtn.style.visibility =
+    state.phase === 'quiz' && state.step > 0 ? 'visible' : 'hidden';
+}
+
+function render() {
+  updateProgress();
+  if (state.phase === 'quiz') return renderQuestion();
+  if (state.phase === 'calc') return renderCalculating();
+  if (state.phase === 'result') return renderResult();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[state.step];
+  const selected = state.answers[q.id];
+
+  $main.innerHTML = `
+    <div class="step" key="${q.id}">
+      <h1 class="text-2xl font-extrabold leading-tight mb-2">${q.title}</h1>
+      ${q.subtitle ? `<p class="text-gray-500 mb-6">${q.subtitle}</p>` : '<div class="mb-6"></div>'}
+      <div class="flex flex-col gap-3">
+        ${q.options.map(opt => `
+          <button class="opt ${selected === opt.value ? 'selected' : ''}" data-value="${opt.value}">
+            <span class="emoji">${opt.emoji}</span>
+            <span>${opt.label}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  $main.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const value = btn.dataset.value;
+      state.answers[q.id] = value;
+      btn.classList.add('selected');
+      // small delay so the selection state is visible before advancing
+      setTimeout(() => {
+        if (state.step < QUESTIONS.length - 1) {
+          state.step++;
+          render();
+        } else {
+          state.phase = 'calc';
+          render();
+        }
+      }, 220);
+    });
+  });
+}
+
+function renderCalculating() {
+  const labels = [
+    '🎯 Matching your goals…',
+    '🧠 Checking your habits…',
+    '🍎 Reviewing nutrition needs…',
+    '✨ Personalizing your plan…',
+  ];
+  $main.innerHTML = `
+    <div class="step flex-1 flex flex-col items-center justify-center text-center px-2">
+      <div class="text-6xl mb-6 pop">🧮</div>
+      <h1 class="text-2xl font-extrabold mb-2">Analyzing your answers</h1>
+      <p class="text-gray-500 mb-8" id="calcLabel">${labels[0]}</p>
+      <div class="calc-bar-track w-full max-w-sm">
+        <div class="calc-bar-fill" id="calcFill"></div>
+      </div>
+      <p class="mt-4 text-sm font-bold text-gray-400 tabular-nums" id="calcPct">0%</p>
+    </div>
+  `;
+
+  const $fill = document.getElementById('calcFill');
+  const $pct = document.getElementById('calcPct');
+  const $label = document.getElementById('calcLabel');
+  const duration = 2400;
+  const start = performance.now();
+
+  function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const pct = Math.round(t * 100);
+    $fill.style.width = pct + '%';
+    $pct.textContent = pct + '%';
+    const labelIdx = Math.min(labels.length - 1, Math.floor(t * labels.length));
+    if ($label.dataset.idx != labelIdx) {
+      $label.dataset.idx = labelIdx;
+      $label.textContent = labels[labelIdx];
+    }
+    if (t < 1) requestAnimationFrame(tick);
+    else {
+      setTimeout(() => {
+        state.phase = 'result';
+        render();
+      }, 220);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+function computeScoreAndReasons(a) {
+  // Score (0-100), gently weighted, always lands 86–98 so result feels good.
+  let score = 70;
+  if (a.scan === 'yes') score += 12;
+  else if (a.scan === 'maybe') score += 6;
+  if (a.commit === 'high') score += 10;
+  else if (a.commit === 'mid') score += 6;
+  else score += 3;
+  if (a.tracking === 'never' || a.tracking === 'sometimes') score += 5;
+  if (a.struggle === 'tedious' || a.struggle === 'time' || a.struggle === 'calories') score += 5;
+  if (a.goal) score += 3;
+  score = Math.min(98, Math.max(86, score));
+
+  const reasons = [];
+
+  // Goal-based reason
+  const goalReason = {
+    lose:     { e: '🔥', t: 'Built for your weight-loss goal', s: 'Caloria nails the calorie counts that drive a deficit.' },
+    muscle:   { e: '💪', t: 'Tracks protein for muscle gains',  s: 'See macros instantly so you hit your protein target.' },
+    maintain: { e: '⚖️', t: 'Keeps you in your sweet spot',     s: "Quick scans make maintenance effortless." },
+    healthy:  { e: '🥗', t: 'Better choices, automatically',    s: 'Spot the nutrition wins and gaps in seconds.' },
+  }[a.goal];
+  if (goalReason) reasons.push(goalReason);
+
+  // Struggle / logging-based reason
+  if (a.struggle === 'tedious' || a.logging === 'manual' || a.logging === 'none') {
+    reasons.push({ e: '⚡', t: 'No more tedious logging', s: 'Snap a photo — Caloria does the typing for you.' });
+  } else if (a.struggle === 'time') {
+    reasons.push({ e: '⏱️', t: 'Made for busy schedules', s: 'A meal logged in under 3 seconds.' });
+  } else if (a.struggle === 'calories' || a.logging === 'guess') {
+    reasons.push({ e: '🎯', t: 'Real numbers, not guesses', s: 'Accurate calorie data on every meal — instantly.' });
+  } else if (a.struggle === 'cravings') {
+    reasons.push({ e: '🧠', t: 'Awareness beats cravings', s: 'Seeing the numbers builds better habits, fast.' });
+  } else {
+    reasons.push({ e: '⚡', t: 'Fast, simple tracking', s: 'Snap a photo and you’re done.' });
+  }
+
+  // Scan / commitment-based reason
+  if (a.scan === 'yes') {
+    reasons.push({ e: '📸', t: 'Camera scanning is your superpower', s: 'Exactly the workflow you said you wanted.' });
+  } else if (a.commit === 'high') {
+    reasons.push({ e: '🚀', t: 'Matches your motivation', s: 'You’re ready to go — Caloria keeps the momentum.' });
+  } else {
+    reasons.push({ e: '🌱', t: 'Easy to stick with', s: 'Low-effort tracking that grows into a habit.' });
+  }
+
+  return { score, reasons: reasons.slice(0, 3) };
+}
+
+function renderResult() {
+  const { score, reasons } = computeScoreAndReasons(state.answers);
+
+  $main.innerHTML = `
+    <div class="step flex-1 flex flex-col">
+      <div class="text-center pt-2 pb-6">
+        <div class="text-6xl mb-3 pop">🎉</div>
+        <div class="badge-score pop mb-4"><span>✨</span><span>${score}% match</span></div>
+        <h1 class="text-3xl font-extrabold leading-tight mb-2">Caloria is perfect for you!</h1>
+        <p class="text-gray-500">Here's why we think you'll love it:</p>
+      </div>
+
+      <div class="flex flex-col gap-3 mb-6">
+        ${reasons.map((r, i) => `
+          <div class="reason" style="animation: slideIn 360ms ${i * 90}ms both cubic-bezier(.2,.8,.2,1);">
+            <div class="text-2xl">${r.e}</div>
+            <div>
+              <div class="font-extrabold text-[15px] leading-tight">${r.t}</div>
+              <div class="text-sm text-gray-600 mt-0.5">${r.s}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="mt-auto">
+        <a href="https://getcaloria.com" class="cta block text-center no-underline">Get Caloria →</a>
+        <p class="text-center text-xs text-gray-400 mt-3">
+          <span class="pulse-dot"></span> Trusted by thousands of food scanners
+        </p>
+      </div>
+    </div>
+  `;
+
+  fireConfetti();
+}
+
+function fireConfetti() {
+  const colors = ['#58CC02', '#89E219', '#FFC800', '#46A302'];
+  const end = Date.now() + 900;
+  (function frame() {
+    confetti({
+      particleCount: 4,
+      angle: 60,
+      spread: 70,
+      origin: { x: 0, y: 0.7 },
+      colors,
+      gravity: 0.9,
+      scalar: 0.9,
+    });
+    confetti({
+      particleCount: 4,
+      angle: 120,
+      spread: 70,
+      origin: { x: 1, y: 0.7 },
+      colors,
+      gravity: 0.9,
+      scalar: 0.9,
+    });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
+  // big center burst
+  confetti({
+    particleCount: 90,
+    spread: 100,
+    origin: { y: 0.4 },
+    colors,
+    scalar: 1.1,
+  });
+}
+
+render();
+</script>
+</body>
+</html>
