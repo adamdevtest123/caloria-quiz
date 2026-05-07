@@ -134,15 +134,15 @@ function renderStart() {
         <h1 class="text-3xl font-extrabold leading-tight mb-2">Is Caloria right for you?</h1>
         <p class="text-gray-500">Watch this 30s intro, then take the quick quiz.</p>
       </div>
-      <div class="rounded-2xl overflow-hidden mb-4 bg-gray-100" style="border:2px solid var(--line);">
+      <div class="rounded-2xl overflow-hidden mb-4">
         <wistia-player media-id="1v1tjysllk" aspect="1.3333333333333333"></wistia-player>
-      </div>
-      <div class="text-center mb-2">
-        <p class="text-base font-extrabold text-[color:var(--ink)]">🎉 1K+ people have taken this quiz!</p>
-        <p class="text-sm text-gray-500 mt-1">⏱ Takes 30 seconds to complete</p>
       </div>
       <div class="mt-auto pt-4">
         <button id="startBtn" class="cta cta-shimmer">Start the Quiz →</button>
+        <div class="text-center mt-4">
+          <p class="text-base font-extrabold text-[color:var(--ink)]">🎉 1K+ people have taken this quiz!</p>
+          <p class="text-sm text-gray-500 mt-1">⏱ Takes 30 seconds to complete</p>
+        </div>
       </div>
     </div>
   `;
