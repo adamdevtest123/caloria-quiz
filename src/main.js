@@ -85,7 +85,7 @@ const QUESTIONS = [
   },
 ];
 
-const state = { step: 0, phase: 'quiz', answers: {} };
+const state = { step: 0, phase: 'start', answers: {} };
 
 const $main = document.getElementById('main');
 const $progressFill = document.getElementById('progressFill');
@@ -102,6 +102,12 @@ $backBtn.addEventListener('click', () => {
 
 function updateProgress() {
   const total = QUESTIONS.length;
+  const topBar = document.getElementById('topBar');
+  if (state.phase === 'start') {
+    topBar.style.visibility = 'hidden';
+    return;
+  }
+  topBar.style.visibility = 'visible';
   const pct = state.phase === 'quiz' ? (state.step / total) * 100 : 100;
   $progressFill.style.width = pct + '%';
   $progressText.textContent =
@@ -112,9 +118,33 @@ function updateProgress() {
 
 function render() {
   updateProgress();
+  if (state.phase === 'start') return renderStart();
   if (state.phase === 'quiz') return renderQuestion();
   if (state.phase === 'calc') return renderCalculating();
   if (state.phase === 'result') return renderResult();
+}
+
+function renderStart() {
+  $main.innerHTML = `
+    <div class="step flex-1 flex flex-col">
+      <div class="text-center pt-2 pb-5">
+        <h1 class="text-3xl font-extrabold leading-tight mb-2">Is Caloria right for you?</h1>
+        <p class="text-gray-500">Watch this 30s intro, then take the quick quiz.</p>
+      </div>
+      <div class="rounded-2xl overflow-hidden mb-6 bg-gray-100" style="border:2px solid var(--line);">
+        <wistia-player media-id="1v1tjysllk" aspect="1.3333333333333333"></wistia-player>
+      </div>
+      <div class="mt-auto">
+        <button id="startBtn" class="cta">Start the Quiz →</button>
+        <p class="text-center text-xs text-gray-400 mt-3">Takes about 60 seconds · 8 quick questions</p>
+      </div>
+    </div>
+  `;
+  document.getElementById('startBtn').addEventListener('click', () => {
+    state.phase = 'quiz';
+    state.step = 0;
+    render();
+  });
 }
 
 function escapeHtml(s) {
