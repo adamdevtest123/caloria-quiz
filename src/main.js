@@ -127,8 +127,9 @@ function render() {
 function renderStart() {
   $main.innerHTML = `
     <div class="step flex-1 flex flex-col">
-      <div class="flex justify-center pt-1 pb-4">
-        <img src="https://www.getcaloria.com/caloria-icon.png" alt="Caloria" class="logo-img" width="56" height="56" />
+      <div class="brand-row">
+        <img src="https://www.getcaloria.com/caloria-icon.png" alt="" class="logo-img" width="32" height="32" />
+        <span class="brand-name">Caloria</span>
       </div>
       <div class="rounded-2xl overflow-hidden mb-5">
         <wistia-player media-id="1v1tjysllk" aspect="1.3333333333333333"></wistia-player>
@@ -139,10 +140,7 @@ function renderStart() {
       </div>
       <div class="mt-auto pt-6">
         <button id="startBtn" class="cta cta-shimmer">Start the Quiz →</button>
-        <div class="text-center mt-4">
-          <p class="text-base font-extrabold text-[color:var(--ink)]">🎉 1K+ people have taken this quiz!</p>
-          <p class="text-sm text-gray-500 mt-1">⏱ Takes 30 seconds to complete</p>
-        </div>
+        <p class="text-center text-sm text-gray-500 mt-4">1K+ people have taken this quiz</p>
       </div>
     </div>
   `;

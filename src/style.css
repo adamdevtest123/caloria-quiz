@@ -26,7 +26,7 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 16px 20px 24px;
+  padding: 10px 20px 20px;
 }
 .opt {
   display: flex;
@@ -110,10 +110,23 @@ body {
   100% { left: 120%; }
 }
 .logo-img {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   object-fit: contain;
+}
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 0 16px;
+}
+.brand-name {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.2px;
+  color: var(--ink);
 }
 .progress-track {
   flex: 1;
